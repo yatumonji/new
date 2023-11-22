@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Current Location Map</title>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <!-- Leaflet JavaScript -->
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+</head>
+<body>
+  <div id="map" style="height: 400px;"></div>
+
+  <script>
+    // Leaflet マップの初期化
+    var map = L.map('map').setView([36.366316, 140.488754], 15);
+
+    // 国土地理院のGeoGlobeタイルを追加する
+    L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
+      attribution: "<a href='https://maps.gsi.go.jp/?hc=hic#16/36.366631/140.489698/&base=std&ls=std&disp=1&vs=c1g1j0h0k0l0u0t0z0r0s0m0f1' target='_blank'>地理院タイル</a>"
+    }).addTo(map);
+
+    // 5つのマーカーを保持する配列
+    var markers = [];
+
+    // 位置情報を取得してマーカーを更新する関数
+    function updateLocation(marker) {
+      return new Promise(function(resolve, reject) {
+        navigator.geolocation.getCurrentPosition(
+          function(position) {
+            var lat = position.coords.latitude;
+            var lng = position.coords.longitude;
+            marker.setLatLng([lat, lng]); // マーカーの位置を更新する
+            resolve(); // Promiseを解決
+          },
+          function(error) {
+            reject(error); // エラーがあればPromiseを拒否
+          }
+        );
+      });
+    }
+
+    // 初期化: 5つのマーカーを生成して地図に追加
+    for (var i = 0; i < 5; i++) {
+      markers[i] = L.marker([0, 0]).addTo(map);
+    }
+
+    // 1秒ごとに位置情報を更新する
+    setInterval(function() {
+      // 各マーカーに対して位置情報を非同期で取得
+      markers.forEach(function(marker) {
+        updateLocation(marker)
+          .then(function() {
+            // 位置情報が正常に取得されたら何か追加の処理を行うことができます
+          })
+          .catch(function(error) {
+            console.error("Error getting location:", error);
+          });
+      });
+    }, 1000);
+  </script>
+</body>
+</html>
